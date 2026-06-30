@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finsbury Food — Valuation Dashboard | Jewel Thomas</title>
+<meta name="description" content="Integrated operating model and DCF valuation of Finsbury Food Group plc — analyst dashboard by Jewel Thomas." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#11203a;--ink-soft:#3d4a63;--muted:#7a869c;--faint:#9aa6bb;
+    --bg:#f3f6fa;--panel:#ffffff;--line:#e7ecf3;--line-2:#eef2f7;
+    --accent:#1f6f6b;--accent-2:#2b5fb3;--pos:#1e8e63;--neg:#c4452f;--gold:#b88a3e;
+    --sidebar:#0f1b2d;--radius:14px;--shadow:0 1px 2px rgba(16,30,54,.04),0 8px 24px -16px rgba(16,30,54,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums}
+  a{color:inherit;text-decoration:none}
+
+  .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+
+  /* sidebar */
+  aside{position:sticky;top:0;height:100vh;background:var(--sidebar);color:#cdd7e6;display:flex;flex-direction:column;padding:24px 18px}
+  .s-brand{font-weight:800;font-size:1.05rem;color:#fff;letter-spacing:-.01em;margin-bottom:2px}
+  .s-brand span{color:#69c7bd}
+  .s-role{font-size:.72rem;color:#8395ad;letter-spacing:.06em;text-transform:uppercase;margin-bottom:26px}
+  .s-nav{display:flex;flex-direction:column;gap:2px}
+  .s-nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;font-size:.9rem;font-weight:500;color:#aab8cc;transition:.15s}
+  .s-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .s-nav a.active{background:rgba(105,199,189,.14);color:#fff}
+  .s-nav a svg{flex:none;opacity:.8}
+  .s-foot{margin-top:auto;display:flex;flex-direction:column;gap:9px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+  .s-dl{display:flex;align-items:center;justify-content:center;gap:8px;background:#69c7bd;color:#08231f;font-weight:700;font-size:.84rem;padding:11px;border-radius:9px;transition:.15s}
+  .s-dl:hover{background:#7fd6cd}
+  .s-back{font-size:.82rem;color:#8395ad;display:flex;align-items:center;gap:7px}
+  .s-back:hover{color:#fff}
+
+  /* main */
+  main{padding:26px 30px 50px;max-width:1180px}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+  .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;margin:6px 0 6px}
+  .sub{color:var(--ink-soft);font-size:.96rem;max-width:70ch}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .tag{font-size:.74rem;font-weight:600;color:var(--ink-soft);background:#fff;border:1px solid var(--line);padding:5px 11px;border-radius:7px}
+  .updated{font-size:.76rem;color:var(--faint);white-space:nowrap}
+
+  /* KPI tiles */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0 6px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:.74rem;font-weight:600;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .kpi .val{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;margin-top:7px}
+  .kpi .delta{font-size:.78rem;font-weight:600;margin-top:3px}
+  .delta.up{color:var(--pos)} .delta.down{color:var(--neg)} .delta.flat{color:var(--muted)}
+  .kpi.hl{background:linear-gradient(160deg,#11203a,#1d3556);border-color:#11203a}
+  .kpi.hl .lbl{color:#9fb2cc} .kpi.hl .val{color:#fff} .kpi.hl .delta{color:#69c7bd}
+
+  /* panels */
+  .row{display:grid;gap:14px;margin-top:14px}
+  .row.two{grid-template-columns:1fr 1fr}
+  .row.l-r{grid-template-columns:1.5fr 1fr}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .panel h2{font-size:1rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .panel .cap{font-size:.78rem;color:var(--muted);margin-bottom:14px}
+  .panel h2 .bar{width:4px;height:15px;background:var(--accent);border-radius:2px}
+  .chart-wrap{position:relative;height:300px}
+
+  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line-2);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;font-weight:600}
+  thead th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:1px solid var(--line)}
+  tbody tr:hover{background:#fafbfd}
+  td.fc{color:var(--accent-2)}
+  .sens td.hl{background:rgba(31,111,107,.12);font-weight:800;color:var(--accent)}
+  .sens td,.sens th{text-align:center}
+  .sens th:first-child,.sens td:first-child{text-align:left}
+
+  .metric-list{display:flex;flex-direction:column;gap:0}
+  .metric-list .m{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:.88rem}
+  .metric-list .m:last-child{border-bottom:0}
+  .metric-list .m span{color:var(--ink-soft)} .metric-list .m b{font-weight:700}
+
+  .insight{background:linear-gradient(160deg,#11203a,#1d3556);color:#fff;border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .insight::after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(105,199,189,.3),transparent 70%);top:-70px;right:-50px}
+  .insight .lbl{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#69c7bd;font-weight:700}
+  .insight .big{font-size:2rem;font-weight:800;letter-spacing:-.02em;margin:8px 0 8px;position:relative}
+  .insight p{color:#c2cfe0;font-size:.9rem;position:relative}
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{position:relative;padding-left:20px;color:var(--ink-soft);font-size:.9rem}
+  ul.clean li::before{content:"";position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+  .note{font-size:.8rem;color:var(--ink-soft);background:#f7f9fc;border-left:3px solid var(--accent);padding:12px 14px;border-radius:7px;margin-top:12px}
+  .legend{font-size:.78rem;color:var(--muted);margin-top:10px}
+  .legend b.blue{color:#0a4bd0}
+  .src{font-size:.82rem;color:var(--muted)} .src a{color:var(--accent-2)}
+
+  @media(max-width:900px){
+    .app{grid-template-columns:1fr}
+    aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px;padding:14px}
+    .s-role,.s-foot{display:none}
+    .s-nav{flex-direction:row;flex-wrap:wrap;margin-left:auto}
+    .s-nav a{padding:7px 10px}.s-nav a span{display:none}
+    .kpis{grid-template-columns:1fr 1fr}
+    .row.two,.row.l-r{grid-template-columns:1fr}
+    main{padding:20px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside>
+    <div class="s-brand">Jewel <span>Thomas</span></div>
+    <div class="s-role">Finance &amp; FP&amp;A Analyst</div>
+    <nav class="s-nav">
+      <a href="#overview" class="active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Overview</span></a>
+      <a href="#financials"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg><span>Financials</span></a>
+      <a href="#valuation"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Valuation</span></a>
+      <a href="#sensitivity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg><span>Sensitivity</span></a>
+      <a href="#method"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 4-9 4-9-4 9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></svg><span>Method</span></a>
+    </nav>
+    <div class="s-foot">
+      <a class="s-dl" href="assets/Finsbury_3Statement_Model_Valuation.xlsx">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download model (.xlsx)</a>
+      <a class="s-back" href="index.html">← Back to portfolio</a>
+    </div>
+  </aside>
+
+  <main>
+    <div id="overview" class="topbar">
+      <div>
+        <span class="eyebrow">Equity Research · Case Study</span>
+        <h1>Finsbury Food Group plc — Valuation Dashboard</h1>
+        <p class="sub">Integrated three-statement operating model and DCF valuation of a UK speciality bakery manufacturer, built from published filings and tested against the company's real 2023 take-private price.</p>
+        <div class="tags"><span class="tag">Excel · formula-driven</span><span class="tag">FY2019–FY2026E</span><span class="tag">DCF + sensitivity</span><span class="tag">0 formula errors</span></div>
+      </div>
+      <div class="updated">Sector: Food Manufacturing<br/>Units: £m unless stated</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">FY23 Revenue</div><div class="val num">£413.7m</div><div class="delta up">▲ 16.0% YoY</div></div>
+      <div class="kpi"><div class="lbl">FY23 Adj. EBITDA</div><div class="val num">£31.3m</div><div class="delta up">▲ 8.8% YoY</div></div>
+      <div class="kpi hl"><div class="lbl">DCF value / share</div><div class="val num">162p</div><div class="delta">base case</div></div>
+      <div class="kpi"><div class="lbl">Upside vs 110p offer</div><div class="val num" style="color:var(--pos)">+48%</div><div class="delta flat">2023 take-private</div></div>
+    </div>
+
+    <!-- the question -->
+    <div class="row"><div class="panel">
+      <h2><span class="bar"></span>The question</h2>
+      <p class="cap">Why this company, and what's being tested</p>
+      <p style="color:var(--ink-soft);font-size:.92rem">In September 2023, DBAY Advisors agreed to take Finsbury Food Group private at <b>110p per share</b> (£143.4m) — a 24% premium to the undisturbed price, yet two institutional shareholders publicly argued the company was undervalued. This model rebuilds Finsbury's economics from its filings to answer one question: <i>what was a share worth on a fundamental, discounted-cash-flow basis?</i></p>
+    </div></div>
+
+    <!-- financials -->
+    <div id="financials" class="row l-r">
+      <div class="panel">
+        <h2><span class="bar"></span>Revenue &amp; EBITDA trajectory</h2>
+        <p class="cap">FY19–FY23 reported · FY24E–FY26E modelled</p>
+        <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2><span class="bar"></span>Valuation summary</h2>
+        <p class="cap">DCF base case</p>
+        <div class="metric-list">
+          <div class="m"><span>Enterprise value</span><b class="num">£234m</b></div>
+          <div class="m"><span>Less: net bank debt</span><b class="num">(£21m)</b></div>
+          <div class="m"><span>Equity value</span><b class="num">£212m</b></div>
+          <div class="m"><span>Shares in issue</span><b class="num">130.7m</b></div>
+          <div class="m"><span>Value / share</span><b class="num" style="color:var(--accent)">162p</b></div>
+          <div class="m"><span>WACC</span><b class="num">8.5%</b></div>
+          <div class="m"><span>Terminal growth</span><b class="num">2.0%</b></div>
+          <div class="m"><span>Implied EV / FY23 EBITDA</span><b class="num">7.5x</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- financial summary table -->
+    <div class="row"><div class="panel">
+      <h2><span class="bar"></span>Financial summary (£m)</h2>
+      <p class="cap">Adjusted / underlying basis · forecast years in blue</p>
+      <div style="overflow-x:auto">
+      <table class="num">
+        <thead><tr><th>£m</th><th>FY19</th><th>FY20</th><th>FY21</th><th>FY22</th><th>FY23</th><th class="fc">FY24E</th><th class="fc">FY25E</th><th class="fc">FY26E</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td>315.3</td><td>306.3</td><td>313.3</td><td>356.8</td><td>413.7</td><td class="fc">426.1</td><td class="fc">441.0</td><td class="fc">458.7</td></tr>
+          <tr><td>Adj. EBITDA</td><td>25.5</td><td>21.0</td><td>26.9</td><td>28.7</td><td>31.3</td><td class="fc">32.4</td><td class="fc">33.5</td><td class="fc">34.9</td></tr>
+          <tr><td>Adj. EBIT</td><td>17.3</td><td>13.0</td><td>18.8</td><td>19.4</td><td>20.5</td><td class="fc">21.3</td><td class="fc">22.1</td><td class="fc">22.9</td></tr>
+          <tr><td>Adj. PBT</td><td>15.2</td><td>10.9</td><td>17.0</td><td>18.6</td><td>19.3</td><td class="fc">20.0</td><td class="fc">21.3</td><td class="fc">22.8</td></tr>
+          <tr><td>Net income</td><td>11.8</td><td>8.5</td><td>13.2</td><td>14.5</td><td>15.1</td><td class="fc">15.6</td><td class="fc">16.6</td><td class="fc">17.8</td></tr>
+          <tr><td>Unlevered FCF</td><td>12.2</td><td>9.1</td><td>13.3</td><td>13.1</td><td>13.5</td><td class="fc">14.7</td><td class="fc">15.2</td><td class="fc">15.8</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="legend">Reported figures from Finsbury annual reports/results; <b class="blue">blue</b> columns are analyst forecasts. FY20 EBITDA is an estimate (COVID year).</p>
+    </div></div>
+
+    <!-- valuation: bridge + insight -->
+    <div id="valuation" class="row l-r">
+      <div class="panel">
+        <h2><span class="bar"></span>Valuation bridge (£m)</h2>
+        <p class="cap">PV of cash flows to equity value</p>
+        <div class="chart-wrap"><canvas id="bridgeChart"></canvas></div>
+      </div>
+      <div class="insight">
+        <div class="lbl">Headline finding</div>
+        <div class="big">162p / share</div>
+        <p>Discounting unlevered free cash flow at 8.5% WACC and 2% terminal growth implies an equity value of ~£212m — roughly <b style="color:#fff">48% above the 110p deal</b>. Even at a punitive 10% WACC and 1.5% growth, the model returns ~121p — still above the offer. Consistent with the shareholders who opposed the take-private as too cheap.</p>
+      </div>
+    </div>
+
+    <!-- sensitivity -->
+    <div id="sensitivity" class="row"><div class="panel">
+      <h2><span class="bar"></span>Sensitivity — value per share (pence)</h2>
+      <p class="cap">Flexing the two assumptions that matter most: discount rate and long-run growth</p>
+      <div style="overflow-x:auto">
+      <table class="sens num">
+        <thead><tr><th>WACC ↓ / terminal g →</th><th>1.5%</th><th>2.0%</th><th>2.5%</th></tr></thead>
+        <tbody>
+          <tr><td>8.0%</td><td>163</td><td>177</td><td>192</td></tr>
+          <tr><td>8.5%</td><td>150</td><td class="hl">162</td><td>175</td></tr>
+          <tr><td>9.0%</td><td>139</td><td>149</td><td>160</td></tr>
+          <tr><td>9.5%</td><td>130</td><td>138</td><td>148</td></tr>
+          <tr><td>10.0%</td><td>121</td><td>128</td><td>137</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="legend">Highlighted = base case. Every scenario sits above the 110p take-private price.</p>
+    </div></div>
+
+    <!-- method + integrity -->
+    <div id="method" class="row two">
+      <div class="panel">
+        <h2><span class="bar"></span>How it's built</h2>
+        <p class="cap">Methodology</p>
+        <ul class="clean">
+          <li>Linked statements: Assumptions → Income Statement → Cash Flow → Balance Sheet → DCF.</li>
+          <li>Every output is a live Excel formula — change an input, the valuation re-flows.</li>
+          <li>Unlevered FCF = EBIT×(1−tax) + D&amp;A − capex − ΔNWC.</li>
+          <li>WACC built bottom-up via CAPM and after-tax cost of debt.</li>
+          <li>Condensed balance sheet balances every year by construction.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h2><span class="bar"></span>Data integrity</h2>
+        <p class="cap">What's real vs estimated</p>
+        <p style="color:var(--ink-soft);font-size:.9rem">Reported figures (revenue, EBITDA, PBT, net debt, margins, DPS) come from Finsbury's published reports and are flagged <b class="blue">blue</b> with source comments in the workbook. All other line items and forecasts are clearly-labelled analyst estimates.</p>
+        <div class="note">Independent analyst model for portfolio demonstration — not a copy of the company's accounts, not investment advice, and not affiliated with Finsbury Food Group.</div>
+      </div>
+    </div>
+
+    <!-- sources -->
+    <div class="row"><div class="panel">
+      <h2><span class="bar"></span>Sources</h2>
+      <p class="src">Finsbury Food Group FY2023 full-year results &amp; presentation, FY2022 &amp; FY2019 Annual Reports (<a href="https://finsburyfoods.co.uk" target="_blank" rel="noopener">finsburyfoods.co.uk</a>) · preliminary results (<a href="https://www.investegate.co.uk" target="_blank" rel="noopener">Investegate</a>) · recommended acquisition by DBAY Advisors, 110p/share / £143.4m, Sep 2023 (<a href="https://www.thegrocer.co.uk/news/finsbury-food-group-recommends-143m-takeover-offer-to-shareholders/683383.article" target="_blank" rel="noopener">The Grocer</a>).</p>
+      <p class="src" style="margin-top:12px;color:var(--faint)">© <span id="yr"></span> Jewel Thomas · <a href="index.html">Portfolio</a> · <a href="https://www.linkedin.com/in/jewelthomas-" target="_blank" rel="noopener">LinkedIn</a></p>
+    </div></div>
+
+  </main>
+</div>
+
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+const teal='#1f6f6b',steel='#2b5fb3',ink='#11203a';
+Chart.defaults.font.family='Inter';Chart.defaults.font.size=11;Chart.defaults.color='#7a869c';
+const yrs=['FY19','FY20','FY21','FY22','FY23','FY24E','FY25E','FY26E'];
+new Chart(document.getElementById('revChart'),{
+  data:{labels:yrs,datasets:[
+    {type:'bar',label:'Revenue (£m)',data:[315.3,306.3,313.3,356.8,413.7,426.1,441.0,458.7],backgroundColor:'rgba(43,95,179,.16)',borderColor:steel,borderWidth:1,borderRadius:3,yAxisID:'y',order:2},
+    {type:'line',label:'Adj. EBITDA (£m)',data:[25.5,21.0,26.9,28.7,31.3,32.4,33.5,34.9],borderColor:teal,backgroundColor:teal,tension:.35,yAxisID:'y1',order:1,pointRadius:3,borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,boxHeight:12,padding:14}}},
+    scales:{y:{position:'left',grid:{color:'#eef2f7'},border:{display:false},title:{display:true,text:'Revenue'}},
+            y1:{position:'right',grid:{display:false},border:{display:false},title:{display:true,text:'EBITDA'}},
+            x:{grid:{display:false},border:{display:false}}}}
+});
+new Chart(document.getElementById('bridgeChart'),{
+  type:'bar',
+  data:{labels:['PV explicit FCF','PV terminal','Enterprise value','Less net debt','Equity value'],
+    datasets:[{label:'£m',data:[37,197,234,-21,212],backgroundColor:[teal,teal,steel,'#c4452f','#1f6f6b'],borderRadius:3,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'£'+c.raw+'m'}}},
+    scales:{y:{grid:{color:'#eef2f7'},border:{display:false},title:{display:true,text:'£m'}},x:{grid:{display:false},border:{display:false},ticks:{font:{size:10},maxRotation:0,minRotation:0,autoSkip:false,callback:function(v){const l=this.getLabelForValue(v);return l.length>12?l.split(' '):l}}}}}
+});
+// active nav on scroll
+const secs=[...document.querySelectorAll('main [id]')];
+const navlinks=[...document.querySelectorAll('.s-nav a')];
+const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
+  navlinks.forEach(n=>n.classList.toggle('active',n.getAttribute('href')==='#'+e.target.id));}});},{rootMargin:'-30% 0px -60% 0px'});
+secs.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
