@@ -325,7 +325,7 @@
       <div class="skill-card reveal">
         <div class="skill-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
         <h3>Systems &amp; Tools</h3>
-        <ul><li>Advanced Excel</li><li>Power BI</li><li>SQL (working)</li><li>ERP systems</li><li>S&amp;P Capital IQ</li></ul>
+        <ul><li>Advanced Excel</li><li>Power BI</li><li>R (quant analysis)</li><li>SQL (working)</li><li>ERP systems</li><li>S&amp;P Capital IQ</li></ul>
       </div>
       <div class="skill-card reveal">
         <div class="skill-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5l8 4 8-4v14l-8 4-8-4z"/><path d="M12 9v14"/></svg></div>
@@ -417,7 +417,7 @@
       <article class="work-card soon-card reveal">
         <span class="tag live" style="background:rgba(31,111,107,.12);color:var(--accent);border:1px solid rgba(31,111,107,.32)">Excel dashboard · Valuation</span>
         <h3>Finsbury Food — 3-Statement Model &amp; DCF</h3>
-        <p>Integrated operating model and DCF valuation of a UK bakery manufacturer, built from published filings. The DCF implies ~162p/share against the 110p 2023 take-private — roughly 48% upside.</p>
+        <p><strong>Investment thesis: undervalued.</strong> Integrated operating model and DCF valuation of a UK bakery manufacturer, built from published filings — the DCF implies ~162p/share against the 110p 2023 take-private, roughly 48% upside.</p>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
           <a class="work-link" href="assets/Finsbury_3Statement_Model_Valuation.xlsx" style="display:inline-flex">Download Excel
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
@@ -446,6 +446,31 @@
         <a class="work-link" href="assets/Finsbury_FPA_Budget_vs_Actual.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
         </a>
+      </article>
+
+      <!-- PROJECT: A.G. BARR TRADE IDEA -->
+      <article class="work-card soon-card reveal">
+        <span class="tag live" style="background:rgba(184,138,62,.14);color:#8a6520;border:1px solid rgba(184,138,62,.35)">Equity trade idea · Markets</span>
+        <h3>A.G. Barr (LON:BAG) — Trade Idea</h3>
+        <p><strong>BUY, target 785p (~24% upside).</strong> A directional view on a listed FTSE-250 soft-drinks name: net cash, double-digit growth guidance, trading at 8.7x EV/EBITDA — a discount to the ~13x Britvic take-out. Valuation, catalysts, risks and a price target.</p>
+        <a class="work-link" href="assets/AG_Barr_Trade_Idea.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+        </a>
+      </article>
+
+      <!-- PROJECT: R CAPM -->
+      <article class="work-card soon-card reveal">
+        <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Quantitative · R</span>
+        <h3>CAPM Beta &amp; Volatility (R)</h3>
+        <p>Equity-risk analysis in R: weekly returns, rolling volatility and a CAPM regression estimating beta (0.65), alpha and R² for A.G. Barr vs the FTSE 250. Written to pull live data via <code>quantmod</code>.</p>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
+          <a class="work-link" href="capm-analysis.html" style="display:inline-flex">View case study
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="work-link" href="assets/capm_volatility_analysis.R" style="display:inline-flex">R script
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          </a>
+        </div>
       </article>
 
     </div>
