@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AP & Month-End Close — Finance Operations Model | Jewel Thomas</title>
+<meta name="description" content="A working model of the transactional finance cycle: AP invoice aging, month-end close tracker, bank reconciliation, and prepayment schedule. Built by Jewel Thomas."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0f1b2d;
+  --ink-soft:#33415c;
+  --muted:#6b7892;
+  --paper:#f6f8fb;
+  --paper-2:#eef2f8;
+  --white:#ffffff;
+  --line:#e2e8f1;
+  --accent:#1f6f6b;
+  --accent-2:#2b5fb3;
+  --gold:#b88a3e;
+  --red:#c0392b;
+  --amber:#e67e22;
+  --green:#1a6b2a;
+  --glass:rgba(255,255,255,0.55);
+  --glass-brd:rgba(255,255,255,0.7);
+  --shadow:0 18px 50px -22px rgba(15,27,45,0.35);
+  --radius:18px;
+  --maxw:1140px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.serif{font-family:'Fraunces',Georgia,serif;font-weight:500;letter-spacing:-.01em;line-height:1.12}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.eyebrow{font-size:.78rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+
+/* NAV */
+header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(246,248,251,0.85);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:62px}
+.brand{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600}
+.brand span{color:var(--accent)}
+.nav-back{display:inline-flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;color:var(--ink-soft);padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);transition:all .2s}
+.nav-back:hover{color:var(--ink);border-color:var(--accent)}
+
+/* HERO */
+.page-hero{padding:52px 0 36px;border-bottom:1px solid var(--line)}
+.tag{display:inline-block;font-size:.76rem;font-weight:600;padding:4px 10px;border-radius:999px;margin-bottom:14px;background:rgba(31,111,107,.1);color:var(--accent);border:1px solid rgba(31,111,107,.28)}
+.page-hero h1{font-size:clamp(1.9rem,4vw,2.9rem);margin:10px 0 12px;max-width:26ch}
+.page-hero .lead{font-size:1.05rem;color:var(--ink-soft);max-width:62ch;margin-bottom:20px}
+.meta-row{display:flex;flex-wrap:wrap;gap:20px;font-size:.84rem;color:var(--muted);font-weight:500}
+.meta-row span{display:flex;align-items:center;gap:5px}
+
+/* SUMMARY METRICS */
+.metrics-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:28px 0}
+@media(max-width:760px){.metrics-bar{grid-template-columns:repeat(2,1fr)}}
+.metric-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.metric-card .label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.metric-card .value{font-family:'Fraunces',serif;font-size:2rem;font-weight:500;line-height:1}
+.metric-card .sub{font-size:.8rem;color:var(--muted);margin-top:4px}
+.metric-card.warn .value{color:var(--red)}
+.metric-card.ok .value{color:var(--green)}
+.metric-card.amber .value{color:var(--amber)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin:32px 0 0}
+.tab-btn{font-size:.9rem;font-weight:600;padding:10px 18px;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--ink)}
+.tab-panel{display:none;padding:28px 0 48px}
+.tab-panel.active{display:block}
+
+/* SECTION HEADS */
+.sec-label{font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.sec-title{font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:6px}
+.sec-sub{font-size:.9rem;color:var(--ink-soft);margin-bottom:22px;max-width:70ch}
+
+/* AP AGING TABLE */
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:var(--white)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead tr{background:var(--paper-2);border-bottom:2px solid var(--line)}
+th{padding:11px 14px;text-align:left;font-weight:700;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fbfd}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:999px}
+.badge.paid{background:#e6f4ea;color:var(--green)}
+.badge.outstanding{background:#fff8e6;color:var(--amber)}
+.badge.overdue{background:#fdecea;color:var(--red)}
+.badge.pending{background:#edf2fb;color:var(--accent-2)}
+.amount{font-weight:600;font-variant-numeric:tabular-nums}
+.overdue-amt{color:var(--red);font-weight:700}
+
+/* AGING CHART */
+.aging-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+@media(max-width:700px){.aging-grid{grid-template-columns:1fr}}
+.aging-band{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.aging-band h4{font-size:.92rem;font-weight:700;margin-bottom:14px;color:var(--ink-soft)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.84rem}
+.bar-row .bar-label{width:90px;color:var(--ink-soft);font-weight:500;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:var(--paper-2);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;transition:width .6s ease}
+.bar-fill.current{background:var(--green)}
+.bar-fill.s30{background:var(--amber)}
+.bar-fill.s60{background:#e08c00}
+.bar-fill.s90{background:var(--red)}
+.bar-row .bar-val{width:60px;text-align:right;font-weight:700;color:var(--ink)}
+
+/* MONTH-END CHECKLIST */
+.close-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:700px){.close-grid{grid-template-columns:1fr}}
+.close-group{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.close-group h4{font-size:.95rem;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:.87rem}
+.task-item:last-child{border-bottom:none}
+.task-check{width:20px;height:20px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;margin-top:1px}
+.task-check.done{background:#e6f4ea;color:var(--green)}
+.task-check.wip{background:#fff8e6;color:var(--amber)}
+.task-check.todo{background:#f0f4f8;color:var(--muted)}
+.task-check.flag{background:#fdecea;color:var(--red)}
+.task-text{flex:1;line-height:1.4}
+.task-text .owner{font-size:.75rem;color:var(--muted);margin-top:2px}
+.progress-bar-wrap{margin:0 0 24px}
+.progress-label{display:flex;justify-content:space-between;font-size:.84rem;font-weight:600;margin-bottom:7px}
+.progress-track{height:12px;background:var(--paper-2);border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#2ba89e);transition:width .8s ease}
+
+/* BANK REC */
+.rec-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+@media(max-width:700px){.rec-layout{grid-template-columns:1fr}}
+.rec-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px}
+.rec-card h4{font-size:.95rem;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.rec-row{display:flex;justify-content:space-between;padding:8px 0;font-size:.87rem;border-bottom:1px solid #f4f7fb}
+.rec-row:last-child{border-bottom:none;font-weight:700;padding-top:12px;margin-top:4px;border-top:2px solid var(--line)}
+.rec-row .lbl{color:var(--ink-soft)}
+.rec-row .val{font-weight:600;font-variant-numeric:tabular-nums}
+.rec-row .val.pos{color:var(--green)}
+.rec-row .val.neg{color:var(--red)}
+.rec-row .val.match{color:var(--accent);font-size:1.05em}
+.uncleared{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px}
+.uncleared h4{font-size:.95rem;font-weight:700;margin-bottom:14px}
+.uncleared-item{padding:10px 0;border-bottom:1px solid #f0f4f8;font-size:.86rem}
+.uncleared-item:last-child{border-bottom:none}
+.uncleared-item .desc{font-weight:500;margin-bottom:2px}
+.uncleared-item .meta{font-size:.78rem;color:var(--muted)}
+.match-banner{background:#e6f4ea;border:1px solid rgba(26,107,42,.25);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600;color:var(--green);margin-top:16px}
+
+/* PREPAYMENT SCHEDULE */
+.prep-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:var(--white);margin-bottom:24px}
+.month-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.month-chip{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line);cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s}
+.month-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.total-row td{font-weight:700;background:#f6f8fb}
+.release-pill{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(31,111,107,.1);color:var(--accent)}
+
+/* METHODOLOGY */
+.method-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media(max-width:760px){.method-grid{grid-template-columns:1fr}}
+.method-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.method-card .icon{font-size:1.6rem;margin-bottom:10px}
+.method-card h4{font-size:.95rem;font-weight:700;margin-bottom:8px}
+.method-card p{font-size:.85rem;color:var(--ink-soft);line-height:1.5}
+
+/* FOOTER */
+.page-footer{padding:32px 0;border-top:1px solid var(--line);margin-top:40px}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-inner p{font-size:.84rem;color:var(--muted)}
+.work-link{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:var(--accent);border:1px solid rgba(31,111,107,.35);padding:8px 16px;border-radius:999px;background:rgba(31,111,107,.06);transition:all .2s}
+.work-link:hover{background:rgba(31,111,107,.14)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand">Jewel <span>Thomas</span></div>
+    <a class="nav-back" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+      Back to portfolio
+    </a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="wrap">
+    <span class="tag">Transactional Finance · AP · Month-End Close</span>
+    <h1>AP & Month-End Close — Finance Operations Model</h1>
+    <p class="lead">A working model of the transactional finance cycle: accounts payable aging analysis, month-end close task tracker, bank reconciliation, and prepayment/deferred account schedule — demonstrating operational finance proficiency across the functions central to a finance analyst role in a multi-entity environment.</p>
+    <div class="meta-row">
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Built July 2026</span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> AP · Journals · Reconciliation · Prepayments</span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Month-end simulation: June 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- METRICS BAR -->
+<div class="wrap">
+  <div class="metrics-bar">
+    <div class="metric-card">
+      <div class="label">Total AP Outstanding</div>
+      <div class="value">£84,320</div>
+      <div class="sub">Across 11 active suppliers</div>
+    </div>
+    <div class="metric-card warn">
+      <div class="label">Overdue (90+ days)</div>
+      <div class="value">£6,850</div>
+      <div class="sub">2 invoices requiring escalation</div>
+    </div>
+    <div class="metric-card amber">
+      <div class="label">Month-End Progress</div>
+      <div class="value">73%</div>
+      <div class="sub">11 of 15 close tasks complete</div>
+    </div>
+    <div class="metric-card ok">
+      <div class="label">Bank Rec Status</div>
+      <div class="value">Matched</div>
+      <div class="sub">Ledger = bank; 2 items uncleared</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('ap')">AP Invoice Register</button>
+    <button class="tab-btn" onclick="showTab('close')">Month-End Close</button>
+    <button class="tab-btn" onclick="showTab('bankrec')">Bank Reconciliation</button>
+    <button class="tab-btn" onclick="showTab('prepay')">Prepayment Schedule</button>
+    <button class="tab-btn" onclick="showTab('method')">Methodology</button>
+  </div>
+
+  <!-- TAB: AP INVOICE REGISTER -->
+  <div class="tab-panel active" id="tab-ap">
+    <div class="sec-label">Accounts Payable</div>
+    <div class="sec-title">Invoice Register & Aging Analysis</div>
+    <p class="sec-sub">All supplier invoices for the period June 2026. Sorted by due date. Aging buckets show the distribution of outstanding balances — the 90+ day items are flagged for immediate escalation to the Senior Finance Manager.</p>
+
+    <div class="table-wrap" style="margin-bottom:24px">
+      <table>
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Invoice Ref</th>
+            <th>Invoice Date</th>
+            <th>Due Date</th>
+            <th>PO Ref</th>
+            <th>Amount (£)</th>
+            <th>Status</th>
+            <th>Aging</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Apex Travel Tech Ltd</strong></td>
+            <td>ATT-2026-0441</td>
+            <td>03 Jun 2026</td>
+            <td>03 Jul 2026</td>
+            <td>PO-1042</td>
+            <td class="amount">£12,400.00</td>
+            <td><span class="badge outstanding">Outstanding</span></td>
+            <td>Current</td>
+          </tr>
+          <tr>
+            <td><strong>Clearwater Logistics</strong></td>
+            <td>CWL-1887</td>
+            <td>15 May 2026</td>
+            <td>14 Jun 2026</td>
+            <td>PO-1031</td>
+            <td class="amount">£8,750.00</td>
+            <td><span class="badge paid">Paid</span></td>
+            <td>Settled</td>
+          </tr>
+          <tr>
+            <td><strong>Meridian Hotel Group</strong></td>
+            <td>MHG-2026-00221</td>
+            <td>01 Jun 2026</td>
+            <td>01 Jul 2026</td>
+            <td>PO-1038</td>
+            <td class="amount">£22,100.00</td>
+            <td><span class="badge outstanding">Outstanding</span></td>
+            <td>Current</td>
+          </tr>
+          <tr>
+            <td><strong>BlueStar Airlines</strong></td>
+            <td>BSA-JUN-044</td>
+            <td>10 Jun 2026</td>
+            <td>10 Jul 2026</td>
+            <td>PO-1045</td>
+            <td class="amount">£18,500.00</td>
+            <td><span class="badge pending">Pending Approval</span></td>
+            <td>Current</td>
+          </tr>
+          <tr>
+            <td><strong>Orbit Insurance Brokers</strong></td>
+            <td>OIB-2026-334</td>
+            <td>01 Mar 2026</td>
+            <td>31 Mar 2026</td>
+            <td>PO-0988</td>
+            <td class="amount overdue-amt">£4,200.00</td>
+            <td><span class="badge overdue">Overdue</span></td>
+            <td>90+ days</td>
+          </tr>
+          <tr>
+            <td><strong>Delta Conference Venues</strong></td>
+            <td>DCV-0091</td>
+            <td>20 May 2026</td>
+            <td>19 Jun 2026</td>
+            <td>PO-1029</td>
+            <td class="amount">£3,600.00</td>
+            <td><span class="badge paid">Paid</span></td>
+            <td>Settled</td>
+          </tr>
+          <tr>
+            <td><strong>Pinnacle Software Solutions</strong></td>
+            <td>PSS-1004</td>
+            <td>01 Apr 2026</td>
+            <td>30 Apr 2026</td>
+            <td>PO-1002</td>
+            <td class="amount overdue-amt">£2,650.00</td>
+            <td><span class="badge overdue">Overdue</span></td>
+            <td>90+ days</td>
+          </tr>
+          <tr>
+            <td><strong>Vertex Marketing Agency</strong></td>
+            <td>VMA-2026-078</td>
+            <td>25 May 2026</td>
+            <td>24 Jun 2026</td>
+            <td>PO-1033</td>
+            <td class="amount">£5,420.00</td>
+            <td><span class="badge outstanding">Outstanding</span></td>
+            <td>31–60 days</td>
+          </tr>
+          <tr>
+            <td><strong>Clearwater Logistics</strong></td>
+            <td>CWL-1902</td>
+            <td>10 Jun 2026</td>
+            <td>10 Jul 2026</td>
+            <td>PO-1044</td>
+            <td class="amount">£9,200.00</td>
+            <td><span class="badge outstanding">Outstanding</span></td>
+            <td>Current</td>
+          </tr>
+          <tr>
+            <td><strong>Apex Travel Tech Ltd</strong></td>
+            <td>ATT-2026-0398</td>
+            <td>12 Apr 2026</td>
+            <td>12 May 2026</td>
+            <td>PO-1011</td>
+            <td class="amount">£5,700.00</td>
+            <td><span class="badge outstanding">Outstanding</span></td>
+            <td>61–90 days</td>
+          </tr>
+          <tr>
+            <td><strong>Meridian Hotel Group</strong></td>
+            <td>MHG-2026-00198</td>
+            <td>01 May 2026</td>
+            <td>31 May 2026</td>
+            <td>PO-1020</td>
+            <td class="amount">£6,100.00</td>
+            <td><span class="badge paid">Paid</span></td>
+            <td>Settled</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aging-grid">
+      <div class="aging-band">
+        <h4>Outstanding Balance by Aging Bucket</h4>
+        <div class="bar-row">
+          <span class="bar-label">Current</span>
+          <div class="bar-track"><div class="bar-fill current" style="width:75%"></div></div>
+          <span class="bar-val">£62,200</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">31–60 days</span>
+          <div class="bar-track"><div class="bar-fill s30" style="width:22%"></div></div>
+          <span class="bar-val">£5,420</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">61–90 days</span>
+          <div class="bar-track"><div class="bar-fill s60" style="width:15%"></div></div>
+          <span class="bar-val">£5,700</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">90+ days</span>
+          <div class="bar-track"><div class="bar-fill s90" style="width:8%"></div></div>
+          <span class="bar-val">£6,850</span>
+        </div>
+      </div>
+      <div class="aging-band">
+        <h4>⚠ Escalation Required</h4>
+        <p style="font-size:.86rem;color:var(--ink-soft);margin-bottom:14px">Two invoices have passed 90 days without payment. Actions to raise with Senior Finance Manager:</p>
+        <div style="background:#fff8f8;border:1px solid #f5c6cb;border-radius:10px;padding:14px;margin-bottom:10px;font-size:.85rem">
+          <strong style="color:var(--red)">OIB-2026-334</strong> — Orbit Insurance Brokers<br>
+          <span style="color:var(--muted)">£4,200 · 98 days overdue · Query: disputed coverage period on annual renewal. Awaiting sign-off from Operations Director.</span>
+        </div>
+        <div style="background:#fff8f8;border:1px solid #f5c6cb;border-radius:10px;padding:14px;font-size:.85rem">
+          <strong style="color:var(--red)">PSS-1004</strong> — Pinnacle Software Solutions<br>
+          <span style="color:var(--muted)">£2,650 · 68 days overdue · Query: PO limit exceeded by £150. Raise revised PO or obtain budget holder exception approval.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MONTH-END CLOSE -->
+  <div class="tab-panel" id="tab-close">
+    <div class="sec-label">Month-End Close</div>
+    <div class="sec-title">June 2026 Close Checklist</div>
+    <p class="sec-sub">Structured task tracker for the June 2026 period-end close. 11 of 15 tasks complete. Four items outstanding — two require Finance Manager review before sign-off.</p>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span>Close Progress — June 2026</span><span style="color:var(--accent)">73% complete · 4 tasks remaining</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:73%"></div></div>
+    </div>
+
+    <div class="close-grid">
+      <div class="close-group">
+        <h4>📋 Journals & Accruals</h4>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Payroll accrual posted (£41,200)<div class="owner">Completed 30 Jun · Finance Analyst</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Depreciation journal posted — tangible & intangible<div class="owner">Completed 30 Jun · Finance Analyst</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Prepayment release journal posted (see schedule)<div class="owner">Completed 30 Jun · Finance Analyst</div></div></div>
+        <div class="task-item"><div class="task-check wip">~</div><div class="task-text">Accruals review — outstanding supplier estimates<div class="owner">In progress · Awaiting 2 supplier confirmations</div></div></div>
+        <div class="task-item"><div class="task-check todo">○</div><div class="task-text">Intercompany elimination journals<div class="owner">Not started · Due 3 Jul</div></div></div>
+      </div>
+
+      <div class="close-group">
+        <h4>🏦 Reconciliations</h4>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Bank reconciliation — main operating account<div class="owner">Completed 1 Jul · Matched, 2 timing items noted</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">AP ledger reconciled to supplier statements<div class="owner">Completed 30 Jun · Finance Analyst</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Deferred revenue balance reviewed and released<div class="owner">Completed 29 Jun · Finance Analyst</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Prepayment schedule updated (monthly release)<div class="owner">Completed 30 Jun · Finance Analyst</div></div></div>
+      </div>
+
+      <div class="close-group">
+        <h4>📊 Reporting & Review</h4>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">Management accounts draft produced<div class="owner">Completed 2 Jul · Circulated for review</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">P&L variance commentary prepared (actuals vs budget)<div class="owner">Completed 2 Jul · Revenue +3.1%, opex +0.8%</div></div></div>
+        <div class="task-item"><div class="task-check wip">~</div><div class="task-text">Balance sheet sign-off — Finance Manager review<div class="owner">In progress · Queued for FM review 4 Jul</div></div></div>
+        <div class="task-item"><div class="task-check todo">○</div><div class="task-text">Budget holder monthly review pack distributed<div class="owner">Not started · Target: 5 Jul</div></div></div>
+      </div>
+
+      <div class="close-group">
+        <h4>✅ Compliance & Controls</h4>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">All invoices over £5,000 verified against PO<div class="owner">Completed 30 Jun · 3 PO limit queries raised</div></div></div>
+        <div class="task-item"><div class="task-check flag">!</div><div class="task-text">Two overdue AP items (90+ days) — escalation pending<div class="owner">⚠ Awaiting budget holder authorisation</div></div></div>
+        <div class="task-item"><div class="task-check done">✓</div><div class="task-text">P-Card statement reconciled — 14 transactions<div class="owner">Completed 30 Jun · £2,180 total · All receipts matched</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: BANK REC -->
+  <div class="tab-panel" id="tab-bankrec">
+    <div class="sec-label">Bank Reconciliation</div>
+    <div class="sec-title">Main Operating Account — June 2026</div>
+    <p class="sec-sub">Reconciliation of the bank statement balance to the cash book ledger balance as at 30 June 2026. Two timing differences identified — both are in-transit payments expected to clear by 3 July 2026.</p>
+
+    <div class="rec-layout" style="margin-bottom:24px">
+      <div class="rec-card">
+        <h4>Bank Statement Reconciliation</h4>
+        <div class="rec-row"><span class="lbl">Opening balance (1 Jun 2026)</span><span class="val">£142,850.00</span></div>
+        <div class="rec-row"><span class="lbl">Total receipts in period</span><span class="val pos">+ £318,440.00</span></div>
+        <div class="rec-row"><span class="lbl">Total payments in period</span><span class="val neg">– £291,760.00</span></div>
+        <div class="rec-row"><span class="lbl">Closing balance per bank statement</span><span class="val">£169,530.00</span></div>
+        <div style="height:16px"></div>
+        <div class="rec-row"><span class="lbl">Less: uncleared payments (in transit)</span><span class="val neg">– £4,320.00</span></div>
+        <div class="rec-row"><span class="lbl">Add: receipts not yet on statement</span><span class="val pos">+ £0.00</span></div>
+        <div class="rec-row"><span class="lbl"><strong>Adjusted bank balance</strong></span><span class="val">£165,210.00</span></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="rec-card">
+          <h4>Cash Book (Ledger) Balance</h4>
+          <div class="rec-row"><span class="lbl">Opening ledger balance</span><span class="val">£142,850.00</span></div>
+          <div class="rec-row"><span class="lbl">Receipts posted to ledger</span><span class="val pos">+ £318,440.00</span></div>
+          <div class="rec-row"><span class="lbl">Payments posted to ledger</span><span class="val neg">– £296,080.00</span></div>
+          <div class="rec-row"><span class="lbl"><strong>Closing ledger balance</strong></span><span class="val match">£165,210.00</span></div>
+        </div>
+        <div class="match-banner">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Reconciliation complete — bank and ledger balances match at £165,210.00
+        </div>
+      </div>
+    </div>
+
+    <div class="uncleared">
+      <h4>Uncleared Items — Expected to clear by 3 July 2026</h4>
+      <div class="uncleared-item">
+        <div class="desc">BACS payment — Clearwater Logistics (CWL-1902)</div>
+        <div class="meta">Payment instructed 30 Jun 2026 · £2,800.00 · 3-day BACS processing · Expected clearance: 3 Jul</div>
+      </div>
+      <div class="uncleared-item">
+        <div class="desc">CHAPS transfer — Delta Conference Venues (DCV-0091)</div>
+        <div class="meta">Payment instructed 30 Jun 2026 · £1,520.00 · Same-day CHAPS confirmed but not reflected on statement cut-off · Expected: 1 Jul</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PREPAYMENT SCHEDULE -->
+  <div class="tab-panel" id="tab-prepay">
+    <div class="sec-label">Balance Sheet — Prepayments</div>
+    <div class="sec-title">Prepayment & Deferred Account Schedule</div>
+    <p class="sec-sub">Schedule of all prepaid expenses as at 1 June 2026, with monthly release amounts to the P&L. Each line item requires a journal entry at month-end to release the relevant portion from the prepayment asset to the expense account.</p>
+
+    <div class="month-chips">
+      <span class="month-chip active" onclick="setMonth(this,'jun')">Jun 2026</span>
+      <span class="month-chip" onclick="setMonth(this,'jul')">Jul 2026</span>
+      <span class="month-chip" onclick="setMonth(this,'aug')">Aug 2026</span>
+    </div>
+
+    <div class="prep-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Supplier / Contract</th>
+            <th>Total Prepaid (£)</th>
+            <th>Contract Period</th>
+            <th>Monthly Release (£)</th>
+            <th>Release This Month</th>
+            <th>Balance Remaining (£)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Office & IT Insurance</strong></td>
+            <td>Orbit Insurance Brokers</td>
+            <td class="amount">£50,400.00</td>
+            <td>Jan – Dec 2026</td>
+            <td class="amount">£4,200.00</td>
+            <td><span class="release-pill" id="jun-1">Jun release ✓</span></td>
+            <td class="amount">£25,200.00</td>
+          </tr>
+          <tr>
+            <td><strong>Software Licences (SaaS)</strong></td>
+            <td>Pinnacle Software Solutions</td>
+            <td class="amount">£31,800.00</td>
+            <td>Jan – Dec 2026</td>
+            <td class="amount">£2,650.00</td>
+            <td><span class="release-pill" id="jun-2">Jun release ✓</span></td>
+            <td class="amount">£15,900.00</td>
+          </tr>
+          <tr>
+            <td><strong>Rent — Hammersmith Office</strong></td>
+            <td>GreenPeak Properties Ltd</td>
+            <td class="amount">£72,000.00</td>
+            <td>Apr 2026 – Mar 2027</td>
+            <td class="amount">£6,000.00</td>
+            <td><span class="release-pill" id="jun-3">Jun release ✓</span></td>
+            <td class="amount">£54,000.00</td>
+          </tr>
+          <tr>
+            <td><strong>Marketing Retainer</strong></td>
+            <td>Vertex Marketing Agency</td>
+            <td class="amount">£32,520.00</td>
+            <td>Jan – Jun 2026</td>
+            <td class="amount">£5,420.00</td>
+            <td><span class="release-pill" id="jun-4">Jun release ✓ · Final</span></td>
+            <td class="amount">£0.00</td>
+          </tr>
+          <tr>
+            <td><strong>Conference & Events Block</strong></td>
+            <td>Delta Conference Venues</td>
+            <td class="amount">£18,000.00</td>
+            <td>Mar – Aug 2026</td>
+            <td class="amount">£3,000.00</td>
+            <td><span class="release-pill" id="jun-5">Jun release ✓</span></td>
+            <td class="amount">£6,000.00</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="4"><strong>Total prepayment release — June 2026</strong></td>
+            <td class="amount"><strong>£21,270.00</strong></td>
+            <td><span class="release-pill">5 journals posted</span></td>
+            <td class="amount"><strong>£101,100.00</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px">
+      <h4 style="font-size:.95rem;font-weight:700;margin-bottom:10px">Journal Entry — June 2026 Prepayment Release</h4>
+      <p style="font-size:.86rem;color:var(--ink-soft);margin-bottom:14px">Standard double-entry for monthly release of each prepayment line to the relevant expense account:</p>
+      <div style="background:#f6f8fb;border-radius:10px;padding:14px;font-family:monospace;font-size:.83rem;line-height:1.8">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:8px">
+          <span>Account</span><span>Dr (£)</span><span>Cr (£)</span>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px">
+          <span>Insurance Expense (P&L)</span><span>4,200.00</span><span>—</span>
+          <span>Software & IT Expense (P&L)</span><span>2,650.00</span><span>—</span>
+          <span>Rent Expense (P&L)</span><span>6,000.00</span><span>—</span>
+          <span>Marketing Expense (P&L)</span><span>5,420.00</span><span>—</span>
+          <span>Events Expense (P&L)</span><span>3,000.00</span><span>—</span>
+          <span>Prepayments (Balance Sheet)</span><span>—</span><span>21,270.00</span>
+        </div>
+        <div style="border-top:2px solid var(--line);margin-top:10px;padding-top:8px;font-weight:700;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px">
+          <span>Total</span><span>21,270.00</span><span>21,270.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: METHODOLOGY -->
+  <div class="tab-panel" id="tab-method">
+    <div class="sec-label">About This Project</div>
+    <div class="sec-title">What this demonstrates and how it was built</div>
+    <p class="sec-sub">This model was built to demonstrate competency across the core transactional finance functions central to an operational finance analyst role. All data is illustrative and constructed from first principles — no proprietary data is used.</p>
+
+    <div class="method-grid" style="margin-bottom:28px">
+      <div class="method-card">
+        <div class="icon">📄</div>
+        <h4>AP Invoice Management</h4>
+        <p>Demonstrates understanding of the full AP cycle: invoice receipt, PO matching, approval workflow, aging analysis, and escalation logic for overdue items. Mirrors the purchase-order limit monitoring and supplier liaison required in a finance analyst role.</p>
+      </div>
+      <div class="method-card">
+        <div class="icon">📅</div>
+        <h4>Month-End Close Process</h4>
+        <p>Task tracker built to replicate the actual sequence of a period-end close: journals first (payroll, depreciation, prepayments), reconciliations second, management reporting third. Priority-ordered to reflect real close deadlines.</p>
+      </div>
+      <div class="method-card">
+        <div class="icon">🏦</div>
+        <h4>Bank Reconciliation</h4>
+        <p>Shows the two-sided reconciliation approach — adjusting the bank statement balance for timing differences (uncleared BACS/CHAPS) and confirming the ledger balance matches. Demonstrates awareness of BACS vs CHAPS clearing timelines.</p>
+      </div>
+      <div class="method-card">
+        <div class="icon">📊</div>
+        <h4>Prepayment Schedule</h4>
+        <p>Balance sheet reconciliation of prepaid assets: correctly amortising each contract over the service period with monthly journal entries. The debit/credit table shows the double-entry correctly with charges to the relevant P&L expense lines.</p>
+      </div>
+      <div class="method-card">
+        <div class="icon">⚠</div>
+        <h4>Escalation Logic</h4>
+        <p>Two invoices are intentionally flagged at 90+ days — one with a disputed coverage period, one with a PO limit breach. Realistic close-cycle problems that require Finance Manager involvement, showing awareness of when to escalate vs resolve independently.</p>
+      </div>
+      <div class="method-card">
+        <div class="icon">🔗</div>
+        <h4>Multi-function Linkage</h4>
+        <p>The model is internally consistent: the Orbit Insurance prepayment (insurance expense) links to the overdue Orbit AP invoice (£4,200) — the same supplier appears in both the aging analysis and the prepayment schedule, as they would in a real system.</p>
+      </div>
+    </div>
+
+    <div style="background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px">
+      <h4 style="font-weight:700;margin-bottom:10px">Key Competencies Demonstrated</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Accounts payable (AP)</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Purchase order management</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Invoice aging analysis</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Month-end close</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Journals & accruals</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Bank reconciliation</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Balance sheet reconciliation</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Prepayment schedule</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Deferred accounts</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Cost recognition</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">P-Card reconciliation</span>
+        <span style="background:#eef2fb;color:var(--accent-2);border:1px solid rgba(43,95,179,.2);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600">Double-entry bookkeeping</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end wrap -->
+
+<!-- FOOTER -->
+<div class="wrap">
+  <div class="page-footer">
+    <div class="footer-inner">
+      <p>Jewel Thomas · Finance Analyst · jewel.thomasaby12@gmail.com</p>
+      <a class="work-link" href="index.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        Back to portfolio
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    const ids=['ap','close','bankrec','prepay','method'];
+    b.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active',p.id==='tab-'+id);
+  });
+}
+
+function setMonth(el, month){
+  document.querySelectorAll('.month-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const labels={jun:'Jun release ✓',jul:'Jul release ✓',aug:'Aug release ✓'};
+  const finals={jun:4,jul:-1,aug:-1};
+  for(let i=1;i<=5;i++){
+    const el2=document.getElementById(month+'-'+i);
+    if(!el2) continue;
+    el2.textContent = (finals[month]===i) ? labels[month]+' · Final' : labels[month];
+  }
+}
+</script>
+</body>
+</html>
