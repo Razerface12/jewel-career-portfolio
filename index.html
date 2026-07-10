@@ -600,6 +600,8 @@
       });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     els.forEach(function (e) { io.observe(e); });
+    // Safety net: if the observer never fires (unusual viewports, prerender, etc.), reveal everything so the page is never blank.
+    setTimeout(function () { els.forEach(function (e) { e.classList.add('in'); }); }, 1200);
   })();
 
   // Mobile nav toggle
