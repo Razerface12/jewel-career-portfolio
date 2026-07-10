@@ -582,4 +582,36 @@
 
 <footer>
   <div class="wrap">
-    © <span id="yr"></span>
+    © <span id="yr"></span> Jewel Thomas · Built &amp; deployed via GitHub Pages · <a href="https://www.linkedin.com/in/jewelthomas-" target="_blank" rel="noopener">linkedin.com/in/jewelthomas-</a>
+  </div>
+</footer>
+
+<script>
+  // Current year in footer
+  var _yr = document.getElementById('yr'); if (_yr) _yr.textContent = new Date().getFullYear();
+
+  // Scroll-reveal: fade sections in as they enter the viewport
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+
+  // Mobile nav toggle
+  (function () {
+    var btn = document.querySelector('.menu-btn');
+    var links = document.querySelector('nav.links');
+    if (btn && links) {
+      btn.addEventListener('click', function () {
+        links.style.display = (getComputedStyle(links).display === 'none') ? 'flex' : 'none';
+      });
+    }
+  })();
+</script>
+</body>
+</html>
