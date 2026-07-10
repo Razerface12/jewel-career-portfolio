@@ -205,8 +205,10 @@
   footer a{color:var(--accent);font-weight:600}
 
   /* reveal */
-  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
-  .reveal.in{opacity:1;transform:none}
+  /* Entrance animation is pure CSS: content is visible even if JS never runs. */
+  .reveal{animation:revealUp .6s ease both}
+  @keyframes revealUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.reveal{animation:none}}
 
   @media(max-width:900px){
     .hero-grid,.about-grid,.skills-grid,.work-grid,.edu-grid{grid-template-columns:1fr}
@@ -587,32 +589,14 @@
 </footer>
 
 <script>
-  // Current year in footer
+  // Footer year
   var _yr = document.getElementById('yr'); if (_yr) _yr.textContent = new Date().getFullYear();
-
-  // Scroll-reveal: fade sections in as they enter the viewport
+  // Mobile nav toggle (visibility of content does NOT depend on this)
   (function () {
-    var els = document.querySelectorAll('.reveal');
-    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
-      });
-    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-    els.forEach(function (e) { io.observe(e); });
-    // Safety net: if the observer never fires (unusual viewports, prerender, etc.), reveal everything so the page is never blank.
-    setTimeout(function () { els.forEach(function (e) { e.classList.add('in'); }); }, 1200);
-  })();
-
-  // Mobile nav toggle
-  (function () {
-    var btn = document.querySelector('.menu-btn');
-    var links = document.querySelector('nav.links');
-    if (btn && links) {
-      btn.addEventListener('click', function () {
-        links.style.display = (getComputedStyle(links).display === 'none') ? 'flex' : 'none';
-      });
-    }
+    var b = document.querySelector('.menu-btn'), l = document.querySelector('nav.links');
+    if (b && l) { b.addEventListener('click', function () {
+      l.style.display = (getComputedStyle(l).display === 'none') ? 'flex' : 'none';
+    }); }
   })();
 </script>
 </body>
