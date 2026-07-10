@@ -134,6 +134,10 @@
 
   /* ---------- WORK ---------- */
   .work-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+  .work-cat{font-family:'Fraunces',serif;font-weight:500;font-size:1.35rem;color:var(--ink);margin:44px 0 20px;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .work-cat:first-of-type{margin-top:6px}
+  .work-cat span{font-family:'Inter',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--paper-2);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+  .work-grid + .work-cat{margin-top:40px}
   .work-card{position:relative;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
     display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s}
   .work-card:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
@@ -383,23 +387,14 @@
     <div class="sec-head reveal">
       <span class="eyebrow">Selected Work</span>
       <h2>Analysis you can open and read.</h2>
-      <p>Real, industry-style finance projects — built to the standard a hiring team would expect. More are in progress and added here as they're completed.</p>
+      <p>Real, industry-style finance projects, grouped by discipline — equity research &amp; valuation, FP&amp;A &amp; reporting, and technical builds. Everything is openable: Excel models, PDFs, live dashboards and code.</p>
     </div>
+
+    <!-- ============ GROUP 1: EQUITY RESEARCH & VALUATION ============ -->
+    <h3 class="work-cat reveal">Equity Research &amp; Valuation <span>Valuation · Markets</span></h3>
     <div class="work-grid">
 
-      <!-- PROJECT: AP & MONTH-END DASHBOARD -->
-      <article class="work-card soon-card reveal" style="border-left:4px solid var(--accent-2);grid-column:1 / -1">
-        <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Interactive · Transactional Finance · AP · Month-End</span>
-        <h3>AP & Month-End Close — Finance Operations Model</h3>
-        <p>A working model of the full transactional finance cycle: <strong>accounts payable invoice register with aging analysis</strong>, month-end close task tracker (15 tasks, journals through to balance sheet sign-off), <strong>bank reconciliation</strong> with uncleared items, and a <strong>prepayment/deferred account schedule</strong> with double-entry journal entries. Built to demonstrate operational finance competency across the functions central to a finance analyst role — AP, reconciliation, cost recognition, prepayments, accruals.</p>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
-          <a class="work-link" href="ap-month-end-dashboard.html" style="display:inline-flex">Open dashboard
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-        </div>
-      </article>
-
-      <!-- FEATURED -->
+      <!-- FEATURED: A.G. BARR FTSE 350 -->
       <article class="work-card feature reveal">
         <div class="work-banner">
           <span class="tag live">Flagship · Equity Analysis</span>
@@ -440,26 +435,6 @@
         </div>
       </article>
 
-      <!-- PROJECT: FIRSTGROUP -->
-      <article class="work-card soon-card reveal">
-        <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Excel dashboard · Cash Flow</span>
-        <h3>FirstGroup — Cash Flow &amp; Working Capital</h3>
-        <p>Analysis of how a £5bn UK transport operator turns profit into cash. Working capital swung ~£182m year-on-year and free cash flow more than doubled to £113.5m — built entirely from reported FY2025 actuals.</p>
-        <a class="work-link" href="assets/FirstGroup_CashFlow_WorkingCapital.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-        </a>
-      </article>
-
-      <!-- PROJECT: FP&A -->
-      <article class="work-card soon-card reveal">
-        <span class="tag live" style="background:rgba(31,111,107,.12);color:var(--accent);border:1px solid rgba(31,111,107,.32)">Excel dashboard · FP&amp;A</span>
-        <h3>Finsbury FP&amp;A — Budget vs Actual</h3>
-        <p>A commercial-finance variance pack: budget-vs-actual across the P&amp;L with favourable/adverse flags, an EBITDA bridge, and a quarterly tracker. Shows the story behind the numbers — revenue beat, margin missed, costs carried the result.</p>
-        <a class="work-link" href="assets/Finsbury_FPA_Budget_vs_Actual.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-        </a>
-      </article>
-
       <!-- PROJECT: A.G. BARR TRADE IDEA -->
       <article class="work-card soon-card reveal">
         <span class="tag live" style="background:rgba(184,138,62,.14);color:#8a6520;border:1px solid rgba(184,138,62,.35)">Equity trade idea · Markets</span>
@@ -470,11 +445,65 @@
         </a>
       </article>
 
+    </div>
+
+    <!-- ============ GROUP 2: FP&A, REPORTING & OPERATIONS FINANCE ============ -->
+    <h3 class="work-cat reveal">FP&amp;A, Reporting &amp; Operations Finance <span>Reporting · FP&amp;A · Ops</span></h3>
+    <div class="work-grid">
+
+      <!-- PROJECT: AP & MONTH-END DASHBOARD -->
+      <article class="work-card soon-card reveal" style="border-left:4px solid var(--accent-2);grid-column:1 / -1">
+        <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Interactive · Transactional Finance · AP · Month-End</span>
+        <h3>AP &amp; Month-End Close — Finance Operations Model</h3>
+        <p>A working model of the full transactional finance cycle: <strong>accounts payable invoice register with aging analysis</strong>, month-end close task tracker (15 tasks, journals through to balance sheet sign-off), <strong>bank reconciliation</strong> with uncleared items, and a <strong>prepayment/deferred account schedule</strong> with double-entry journal entries. Built to demonstrate operational finance competency across the functions central to a finance analyst role — AP, reconciliation, cost recognition, prepayments, accruals.</p>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
+          <a class="work-link" href="ap-month-end-dashboard.html" style="display:inline-flex">Open dashboard
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </article>
+
+      <!-- PROJECT: CONSOLIDATION & VARIANCE TRACKER (NEW) -->
+      <article class="work-card soon-card reveal" style="border-left:4px solid var(--accent)">
+        <span class="tag live" style="background:rgba(31,111,107,.12);color:var(--accent);border:1px solid rgba(31,111,107,.32)">Interactive · Consolidation · Post-Merger Reporting</span>
+        <h3>Multi-Entity Consolidation &amp; Variance Tracker</h3>
+        <p>An interactive tool that consolidates site-level P&amp;L across two legacy businesses into one group report, flags every material variance to budget, <strong>auto-writes the commentary</strong>, tracks cost-saving initiatives against target, and catches data-quality errors before sign-off — the day-one work of post-merger finance reporting. Built on synthetic data; portable to any multi-site or multi-entity finance function.</p>
+        <a class="work-link" href="consolidation-variance-tracker.html" style="margin-top:14px;display:inline-flex">Open the tool
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+
+      <!-- PROJECT: FINSBURY FP&A -->
+      <article class="work-card soon-card reveal">
+        <span class="tag live" style="background:rgba(31,111,107,.12);color:var(--accent);border:1px solid rgba(31,111,107,.32)">Excel dashboard · FP&amp;A</span>
+        <h3>Finsbury FP&amp;A — Budget vs Actual</h3>
+        <p>A commercial-finance variance pack: budget-vs-actual across the P&amp;L with favourable/adverse flags, an EBITDA bridge, and a quarterly tracker. Shows the story behind the numbers — revenue beat, margin missed, costs carried the result.</p>
+        <a class="work-link" href="assets/Finsbury_FPA_Budget_vs_Actual.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+        </a>
+      </article>
+
+      <!-- PROJECT: FIRSTGROUP -->
+      <article class="work-card soon-card reveal">
+        <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Excel dashboard · Cash Flow</span>
+        <h3>FirstGroup — Cash Flow &amp; Working Capital</h3>
+        <p>Analysis of how a £5bn UK transport operator turns profit into cash. Working capital swung ~£182m year-on-year and free cash flow more than doubled to £113.5m — built entirely from reported FY2025 actuals.</p>
+        <a class="work-link" href="assets/FirstGroup_CashFlow_WorkingCapital.xlsx" style="margin-top:14px;display:inline-flex">Download Excel
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+        </a>
+      </article>
+
+    </div>
+
+    <!-- ============ GROUP 3: QUANTITATIVE & TECHNICAL ============ -->
+    <h3 class="work-cat reveal">Quantitative &amp; Technical <span>Code · R</span></h3>
+    <div class="work-grid">
+
       <!-- PROJECT: R CAPM -->
       <article class="work-card soon-card reveal">
         <span class="tag live" style="background:rgba(43,95,179,.12);color:var(--accent-2);border:1px solid rgba(43,95,179,.32)">Quantitative · R</span>
         <h3>CAPM Beta &amp; Volatility (R)</h3>
-        <p>Equity-risk analysis in R: weekly returns, rolling volatility and a CAPM regression estimating beta (0.65), alpha and R² for A.G. Barr vs the FTSE 250. Written to pull live data via <code>quantmod</code>.</p>
+        <p>Equity-risk analysis in R: weekly returns, rolling volatility and a CAPM regression estimating beta (0.65), alpha and R&sup2; for A.G. Barr vs the FTSE 250. Written to pull live data via <code>quantmod</code>.</p>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
           <a class="work-link" href="capm-analysis.html" style="display:inline-flex">View case study
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -553,16 +582,4 @@
 
 <footer>
   <div class="wrap">
-    © <span id="yr"></span> Jewel Thomas · Built &amp; deployed via GitHub Pages · <a href="https://www.linkedin.com/in/jewelthomas-" target="_blank" rel="noopener">linkedin.com/in/jewelthomas-</a>
-  </div>
-</footer>
-
-<script>
-  document.getElementById('yr').textContent = new Date().getFullYear();
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-  },{threshold:0.12});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-</script>
-</body>
-</html>
+    © <span id="yr"></span>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Multi-Entity Consolidation & Variance Tracker — Jewel Thomas</title>
+<meta name="description" content="An interactive demo that consolidates multi-site P&L, flags material variances, auto-writes commentary, tracks cost-saving initiatives and catches data anomalies — the day-one work of post-merger finance reporting." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#0f1b2d; --ink-soft:#33415c; --muted:#6b7892;
+    --paper:#f6f8fb; --paper-2:#eef2f8; --white:#ffffff; --line:#e2e8f1;
+    --accent:#1f6f6b; --accent-2:#2b5fb3; --gold:#b88a3e;
+    --good:#1f7a52; --good-bg:#e7f4ee; --bad:#b3402f; --bad-bg:#fbeae7; --warn:#8a6d1f; --warn-bg:#f7f0da;
+    --glass:rgba(255,255,255,0.6); --glass-brd:rgba(255,255,255,0.75);
+    --shadow:0 18px 50px -22px rgba(15,27,45,0.35); --radius:16px; --maxw:1180px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .bg-orbs{position:fixed;inset:0;z-index:-1;overflow:hidden}
+  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.32}
+  .orb.a{width:520px;height:520px;background:radial-gradient(circle,#9fd6cf,transparent 70%);top:-160px;right:-120px}
+  .orb.b{width:480px;height:480px;background:radial-gradient(circle,#bcd0f2,transparent 70%);top:560px;left:-180px}
+  h1,h2,h3,.serif{font-family:'Fraunces',Georgia,serif;font-weight:500;letter-spacing:-.01em;line-height:1.14}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  .eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  /* nav */
+  header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(246,248,251,0.78);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;letter-spacing:-.02em}
+  .brand span{color:var(--accent)}
+  .nav-cta{font-size:.85rem;font-weight:600;padding:8px 15px;border-radius:999px;background:var(--ink);color:#fff;transition:.2s}
+  .nav-cta:hover{background:var(--accent);transform:translateY(-1px)}
+  /* hero */
+  .hero{padding:52px 0 26px}
+  .hero h1{font-size:clamp(2rem,4.4vw,3.1rem);margin:14px 0 12px}
+  .hero h1 em{font-style:italic;color:var(--accent)}
+  .hero .lead{font-size:1.06rem;color:var(--ink-soft);max-width:70ch}
+  .demo-tag{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:.8rem;font-weight:600;color:var(--warn);background:var(--warn-bg);border:1px solid #eadfb8;padding:6px 13px;border-radius:999px}
+  /* section */
+  section{padding:26px 0}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px;box-shadow:0 10px 30px -24px rgba(15,27,45,.4)}
+  .panel h2{font-size:1.35rem;margin-bottom:4px}
+  .panel .sub{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+  /* controls */
+  .controls{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
+  .ctrl label{display:block;font-size:.76rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  select,input[type=range]{font-family:inherit}
+  select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:.92rem;color:var(--ink);min-width:190px}
+  input[type=range]{width:220px;accent-color:var(--accent)}
+  .thr-val{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .kpi{background:var(--glass);border:1px solid var(--glass-brd);backdrop-filter:blur(10px);border-radius:14px;padding:15px 16px}
+  .kpi small{display:block;font-size:.72rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;line-height:1.25}
+  .kpi b{font-family:'Fraunces',serif;font-size:1.5rem;display:block;color:var(--ink);font-variant-numeric:tabular-nums}
+  .kpi .delta{font-size:.8rem;font-weight:600;margin-top:3px}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  /* table */
+  .tbl-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:10px 12px;text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line);font-weight:600}
+  tbody td{border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:var(--paper-2)}
+  tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;background:var(--paper-2)}
+  tr.subtot td{font-weight:600;background:var(--paper)}
+  .pill{display:inline-block;font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:999px}
+  .pill.good{color:var(--good);background:var(--good-bg)} .pill.bad{color:var(--bad);background:var(--bad-bg)} .pill.warn{color:var(--warn);background:var(--warn-bg)} .pill.ok{color:var(--muted);background:var(--paper-2)}
+  .num-good{color:var(--good)} .num-bad{color:var(--bad)}
+  /* commentary */
+  .commentary{background:var(--paper);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 18px;font-size:.95rem;color:var(--ink-soft)}
+  .commentary p{margin-bottom:10px} .commentary p:last-child{margin-bottom:0}
+  .commentary strong{color:var(--ink)}
+  .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:22px}
+  .chart-box{position:relative;height:300px}
+  .flag-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .flag-list li{display:flex;gap:11px;align-items:flex-start;font-size:.9rem;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .flag-ic{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:.8rem;font-weight:700;margin-top:1px}
+  .flag-ic.warn{background:var(--warn-bg);color:var(--warn)} .flag-ic.bad{background:var(--bad-bg);color:var(--bad)}
+  .foot{padding:34px 0 60px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:20px}
+  .foot b{color:var(--ink-soft)}
+  .method{font-size:.82rem;color:var(--muted);margin-top:10px;line-height:1.6}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}}
+  @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb a"></div><div class="orb b"></div></div>
+
+<header class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="index.html">Jewel <span>Thomas</span></a>
+  <a class="nav-cta" href="index.html">← Back to portfolio</a>
+</div></header>
+
+<div class="wrap">
+  <section class="hero">
+    <span class="eyebrow">Interactive demonstration</span>
+    <h1>Multi-Entity <em>Consolidation</em> &amp; Variance Tracker</h1>
+    <p class="lead">When two finance functions merge, the first casualty is a single, trustworthy view of performance. This tool consolidates site-level P&amp;L across two legacy businesses into one group report, flags every material variance against budget, writes the commentary automatically, tracks delivery of cost-saving initiatives, and catches data-quality errors before they reach the board pack — the day-one work of post-merger reporting.</p>
+    <span class="demo-tag">● Synthetic data — built to demonstrate method, not to report real figures</span>
+  </section>
+
+  <!-- CONTROLS -->
+  <div class="panel">
+    <div class="controls">
+      <div class="ctrl">
+        <label for="entity">Consolidation scope</label>
+        <select id="entity">
+          <option value="ALL">Group — both legacy businesses</option>
+          <option value="Fresh">Legacy Fresh Foods only</option>
+          <option value="Chilled">Legacy Chilled Co only</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label for="thr">Materiality threshold — <span class="thr-val" id="thrVal">£40k</span> &amp; 2.0%</label>
+        <input type="range" id="thr" min="10" max="150" step="10" value="40" />
+      </div>
+      <div class="ctrl">
+        <label for="period">Reporting period</label>
+        <select id="period">
+          <option value="P07">P07 · July FY26</option>
+          <option value="P06">P06 · June FY26</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIS -->
+  <div class="kpis" id="kpis"></div>
+  <div style="height:22px"></div>
+
+  <!-- CONSOLIDATED P&L -->
+  <div class="panel">
+    <h2>Consolidated P&amp;L</h2>
+    <p class="sub" id="plScope">Rolled up from site level · Actual vs Budget · variances flagged at the materiality threshold above.</p>
+    <div class="tbl-scroll"><table id="plTable"></table></div>
+  </div>
+
+  <!-- SITE + COMMENTARY -->
+  <div class="two-col">
+    <div class="panel">
+      <h2>Site performance</h2>
+      <p class="sub">Operating profit by site — Actual vs Budget. Hover a bar for detail.</p>
+      <div class="chart-box"><canvas id="siteChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Auto-generated commentary</h2>
+      <p class="sub">Narrative written from the variance data — reranks as you change scope or threshold.</p>
+      <div class="commentary" id="commentary"></div>
+    </div>
+  </div>
+
+  <!-- SITE TABLE -->
+  <div class="panel">
+    <h2>Site-level detail</h2>
+    <p class="sub">Every operating site in scope, ranked by adverse operating-profit variance.</p>
+    <div class="tbl-scroll"><table id="siteTable"></table></div>
+  </div>
+
+  <!-- SYNERGY -->
+  <div class="panel">
+    <h2>Cost-synergy &amp; initiative tracker</h2>
+    <p class="sub">Post-merger, savings are promised to the market. This tracks each initiative's realised value against its run-rate target — the evidence a board needs that the synergy case is landing.</p>
+    <div class="tbl-scroll"><table id="synTable"></table></div>
+  </div>
+
+  <!-- DATA VALIDATION -->
+  <div class="panel">
+    <h2>Data-quality checks</h2>
+    <p class="sub">Automated validation run before consolidation — the same discipline that stops a mis-keyed figure or a mis-classified cost reaching leadership.</p>
+    <ul class="flag-list" id="validationList"></ul>
+  </div>
+
+  <div class="foot">
+    <b>Method.</b> All figures are synthetic. The tool performs a real bottom-up consolidation (site → legacy entity → group), computes variance to budget in £ and %, applies a dual materiality gate (absolute £ <em>and</em> % of line), ranks drivers by £ impact to write the commentary, tracks initiative realisation against target, and runs pre-consolidation validation rules (missing baseline, sign/logic errors, out-of-range cost ratios). Nothing is hard-coded — change the controls and every number, flag and sentence recomputes.
+    <div class="method">Built by <b>Jewel Thomas</b> — Financial Analyst · ACCA Part-Qualified · <a href="index.html" style="color:var(--accent);font-weight:600">portfolio</a>. Portable to any multi-site or multi-entity finance function (post-merger integration, multi-depot FMCG, franchise estates, shared-service consolidation).</div>
+  </div>
+</div>
+
+<script>
+/* ---------- SYNTHETIC DATA ----------
+   Two legacy businesses, multiple sites, two periods.
+   Values in £'000. Deliberate data-quality issues are seeded so the
+   validation engine has something real to catch. */
+const SITES = [
+  // entity, site, period, revenue{a,b}, cogs{a,b}, labour{a,b}, overhead{a,b}
+  {ent:'Fresh',   site:'Derby',      p:'P07', rev:[4120,4050], cogs:[3010,2870], lab:[430,420], ovh:[300,295]},
+  {ent:'Fresh',   site:'Bristol',    p:'P07', rev:[2980,3260], cogs:[2140,2280], lab:[360,355], ovh:[250,255]},
+  {ent:'Fresh',   site:'Leeds',      p:'P07', rev:[3550,3480], cogs:[2520,2470], lab:[395,400], ovh:[268,270]},
+  {ent:'Fresh',   site:'Norwich',    p:'P07', rev:[1870,1820], cogs:[1290,1255], lab:[228,230], ovh:[160,158]},
+  {ent:'Chilled', site:'Worksop',    p:'P07', rev:[5240,5180], cogs:[3760,3690], lab:[520,515], ovh:[352,350]},
+  {ent:'Chilled', site:'Warrington', p:'P07', rev:[3110,3040], cogs:[2280,2150], lab:[372,360], ovh:[214,210]},
+  {ent:'Chilled', site:'Cardiff',    p:'P07', rev:[2460,2500], cogs:[1980,1490], lab:[300,298], ovh:[172,170]}, // COGS ratio anomaly (mis-class)
+  {ent:'Chilled', site:'Kettering',  p:'P07', rev:[1990,null], cogs:[1410,1360], lab:[250,248], ovh:[150,150]}, // missing budget baseline
+  {ent:'Fresh',   site:'Dunstable',  p:'P07', rev:[2210,2180], cogs:[3580,1560], lab:[262,260], ovh:[175,172]}, // COGS>revenue sign/logic error
+  // Prior period P06 (fewer issues) for the period toggle
+  {ent:'Fresh',   site:'Derby',      p:'P06', rev:[4030,4000], cogs:[2905,2840], lab:[422,418], ovh:[297,293]},
+  {ent:'Fresh',   site:'Bristol',    p:'P06', rev:[3180,3240], cogs:[2230,2265], lab:[356,353], ovh:[252,254]},
+  {ent:'Fresh',   site:'Leeds',      p:'P06', rev:[3510,3470], cogs:[2480,2460], lab:[398,399], ovh:[269,269]},
+  {ent:'Fresh',   site:'Norwich',    p:'P06', rev:[1840,1810], cogs:[1268,1250], lab:[229,229], ovh:[159,158]},
+  {ent:'Chilled', site:'Worksop',    p:'P06', rev:[5190,5160], cogs:[3705,3680], lab:[517,514], ovh:[351,349]},
+  {ent:'Chilled', site:'Warrington', p:'P06', rev:[3060,3030], cogs:[2185,2140], lab:[364,359], ovh:[211,209]},
+  {ent:'Chilled', site:'Cardiff',    p:'P06', rev:[2480,2490], cogs:[1760,1485], lab:[299,297], ovh:[171,170]},
+  {ent:'Chilled', site:'Kettering',  p:'P06', rev:[1960,1940], cogs:[1385,1355], lab:[249,247], ovh:[150,149]},
+  {ent:'Fresh',   site:'Dunstable',  p:'P06', rev:[2190,2170], cogs:[1548,1540], lab:[261,259], ovh:[173,171]},
+];
+const INITIATIVES = [
+  {name:'Procurement — combined packaging spend', target:1800, realised:1420, owner:'Group Procurement'},
+  {name:'Logistics — depot route optimisation',   target:1200, realised:  640, owner:'Supply Chain'},
+  {name:'Overhead — finance shared service',       target: 900, realised:  810, owner:'Finance'},
+  {name:'Sites — Dunstable / Norwich consolidation',target:1500, realised:  180, owner:'Operations'},
+  {name:'Systems — single ERP reporting layer',    target: 600, realised:  300, owner:'Finance / IT'},
+];
+const fmt = n => (n<0?'-':'')+'£'+Math.abs(Math.round(n)).toLocaleString()+'k';
+const pct = n => (n>=0?'+':'')+n.toFixed(1)+'%';
+const ENT_LABEL = {Fresh:'Legacy Fresh Foods', Chilled:'Legacy Chilled Co'};
+
+/* ---------- CORE LOGIC ---------- */
+function derive(row){
+  const rA=row.rev[0], rB=row.rev[1];
+  const gpA=rA-row.cogs[0], gpB=(rB==null?null:rB-row.cogs[1]);
+  const opA=gpA-row.lab[0]-row.ovh[0];
+  const opB=(rB==null?null:gpB-row.lab[1]-row.ovh[1]);
+  return {...row, rA,rB, cA:row.cogs[0],cB:row.cogs[1], gpA,gpB, opA,opB,
+    marginA: rA? opA/rA*100 : null, cogsRatioA: rA? row.cogs[0]/rA*100 : null};
+}
+function inScope(r, ent){ return ent==='ALL' || r.ent===ent; }
+
+function validate(rows){
+  const issues=[];
+  rows.forEach(r=>{
+    if(r.rB==null) issues.push({sev:'warn', site:r.site, msg:`No budget baseline loaded for <strong>${r.site}</strong> — excluded from variance until the phasing file is received.`});
+    if(r.cA > r.rA) issues.push({sev:'bad', site:r.site, msg:`<strong>${r.site}</strong>: cost of goods (${fmt(r.cA)}) exceeds revenue (${fmt(r.rA)}) — implies negative gross margin. Likely a sign or mapping error in the source feed.`});
+    if(r.cogsRatioA!=null && (r.cogsRatioA<55 || r.cogsRatioA>85)){
+      // only flag if not already caught by cogs>rev
+      if(!(r.cA>r.rA)) issues.push({sev:'warn', site:r.site, msg:`<strong>${r.site}</strong>: COGS ratio at ${r.cogsRatioA.toFixed(0)}% sits outside the 55–85% norm for the estate — check for a mis-classified cost line before sign-off.`});
+    }
+  });
+  return issues;
+}
+
+const LINES = [
+  {key:'rev', label:'Revenue', a:'rA', b:'rB', adverseIfDown:true},
+  {key:'cogs',label:'Cost of goods sold', a:'cA', b:'cB', adverseIfDown:false},
+  {key:'gp',  label:'Gross profit', a:'gpA', b:'gpB', adverseIfDown:true, subtot:true},
+  {key:'lab', label:'Labour', a:'lab0', b:'lab1', adverseIfDown:false},
+  {key:'ovh', label:'Overheads', a:'ovh0', b:'ovh1', adverseIfDown:false},
+  {key:'op',  label:'Operating profit', a:'opA', b:'opB', adverseIfDown:true, total:true},
+];
+function lineActual(rows,key){
+  return rows.reduce((s,r)=>{
+    if(key==='rev')return s+r.rA; if(key==='cogs')return s+r.cA;
+    if(key==='gp')return s+r.gpA; if(key==='lab')return s+r.lab[0];
+    if(key==='ovh')return s+r.ovh[0]; if(key==='op')return s+r.opA; return s;
+  },0);
+}
+function lineBudget(rows,key){
+  return rows.reduce((s,r)=>{
+    if(r.rB==null) return s; // excluded from budget until baseline loaded
+    if(key==='rev')return s+r.rB; if(key==='cogs')return s+r.cB;
+    if(key==='gp')return s+r.gpB; if(key==='lab')return s+r.lab[1];
+    if(key==='ovh')return s+r.ovh[1]; if(key==='op')return s+r.opB; return s;
+  },0);
+}
+
+let chart;
+function render(){
+  const ent=document.getElementById('entity').value;
+  const period=document.getElementById('period').value;
+  const thrK=+document.getElementById('thr').value;      // absolute £k
+  const thrPct=2.0;                                       // % gate
+  document.getElementById('thrVal').textContent='£'+thrK+'k';
+
+  const allRows=SITES.filter(r=>r.p===period).map(derive);
+  const rows=allRows.filter(r=>inScope(r,ent));
+  // Hard errors are quarantined from the comparable P&L and routed to data-quality:
+  //  - no budget baseline loaded, or  - COGS exceeds revenue (sign/mapping error)
+  const hardError = r => (r.rB==null) || (r.cA > r.rA);
+  const cleanRows = rows.filter(r=>!hardError(r));        // like-for-like actual vs budget
+
+  document.getElementById('plScope').textContent =
+    (ent==='ALL'?'Group — both legacy businesses':ENT_LABEL[ent]) +
+    ' · ' + period + ' · Actual vs Budget · material variances flagged at £'+thrK+'k and '+thrPct.toFixed(1)+'%.';
+
+  /* ---- Consolidated P&L table ---- */
+  const isMaterial=(v,base)=> Math.abs(v)>=thrK && base!==0 && Math.abs(v/base*100)>=thrPct;
+  let html='<thead><tr><th>£\'000</th><th>Actual</th><th>Budget</th><th>Var £</th><th>Var %</th><th>Status</th></tr></thead><tbody>';
+  LINES.forEach(L=>{
+    const a=lineActual(cleanRows,L.key), b=lineBudget(cleanRows,L.key);
+    const v=a-b, vp=b?v/b*100:0;
+    const favourable = L.adverseIfDown ? v>=0 : v<=0;   // for costs, under budget is favourable
+    const mat=isMaterial(v,b);
+    const cls=L.total?'total':(L.subtot?'subtot':'');
+    const vnum = favourable?'num-good':'num-bad';
+    let status='<span class="pill ok">On plan</span>';
+    if(mat) status = favourable?'<span class="pill good">Favourable</span>':'<span class="pill bad">Adverse</span>';
+    html+=`<tr class="${cls}"><td>${L.label}</td><td>${fmt(a)}</td><td>${fmt(b)}</td>`+
+          `<td class="${vnum}">${fmt(v)}</td><td class="${vnum}">${pct(vp)}</td><td>${status}</td></tr>`;
+  });
+  html+='</tbody>';
+  document.getElementById('plTable').innerHTML=html;
+
+  /* ---- KPIs ---- */
+  const rev=lineActual(cleanRows,'rev'), revB=lineBudget(cleanRows,'rev');
+  const op=lineActual(cleanRows,'op'),   opB=lineBudget(cleanRows,'op');
+  const margin=rev?op/rev*100:0, marginB=revB?opB/revB*100:0;
+  // count material adverse site op-variances
+  let matAdverse=0;
+  cleanRows.forEach(r=>{ const v=r.opA-r.opB; if(Math.abs(v)>=thrK && Math.abs(v/(r.opB||1)*100)>=thrPct && v<0) matAdverse++; });
+  const anomalies=validate(rows).length;
+  const kpiHtml=[
+    ['Group revenue',fmt(rev),(rev-revB),revB,true],
+    ['Operating profit',fmt(op),(op-opB),opB,true],
+    ['Operating margin',margin.toFixed(1)+'%',(margin-marginB),null,true,'bps'],
+    ['Var to budget (OP)',pct(opB?(op-opB)/opB*100:0),null,null],
+    ['Material adverse sites',String(matAdverse),null,null],
+    ['Data anomalies',String(anomalies),null,null],
+  ].map(k=>{
+    let delta='';
+    if(k[2]!=null){
+      if(k[5]==='bps'){const d=k[2]; delta=`<span class="delta ${d>=0?'up':'down'}">${d>=0?'+':''}${(d*100).toFixed(0)} bps vs bud</span>`;}
+      else {const d=k[2]; delta=`<span class="delta ${d>=0?'up':'down'}">${fmt(d)} vs bud</span>`;}
+    }
+    return `<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b>${delta}</div>`;
+  }).join('');
+  document.getElementById('kpis').innerHTML=kpiHtml;
+
+  /* ---- Site table (ranked by adverse OP variance) ---- */
+  const siteData=cleanRows.map(r=>({site:r.site,ent:r.ent,op:r.opA,opB:r.opB,v:r.opA-r.opB,
+     vp:r.opB?(r.opA-r.opB)/r.opB*100:0, margin:r.marginA})).sort((x,y)=>x.v-y.v);
+  let st='<thead><tr><th>Site</th><th>Legacy entity</th><th>Op profit</th><th>Budget</th><th>Var £</th><th>Var %</th><th>Margin</th><th>Status</th></tr></thead><tbody>';
+  siteData.forEach(s=>{
+    const mat=Math.abs(s.v)>=thrK && Math.abs(s.vp)>=thrPct;
+    const fav=s.v>=0;
+    const status=mat?(fav?'<span class="pill good">Favourable</span>':'<span class="pill bad">Adverse</span>'):'<span class="pill ok">On plan</span>';
+    st+=`<tr><td>${s.site}</td><td>${ENT_LABEL[s.ent]}</td><td>${fmt(s.op)}</td><td>${fmt(s.opB)}</td>`+
+        `<td class="${fav?'num-good':'num-bad'}">${fmt(s.v)}</td><td class="${fav?'num-good':'num-bad'}">${pct(s.vp)}</td>`+
+        `<td>${s.margin.toFixed(1)}%</td><td>${status}</td></tr>`;
+  });
+  st+='</tbody>';
+  document.getElementById('siteTable').innerHTML=st;
+
+  /* ---- Auto commentary ---- */
+  const drivers=siteData.filter(s=>Math.abs(s.v)>=thrK && Math.abs(s.vp)>=thrPct);
+  const adverse=drivers.filter(s=>s.v<0), fav=drivers.filter(s=>s.v>0);
+  const totV=op-opB;
+  let c='';
+  c+=`<p><strong>Operating profit of ${fmt(op)} is ${fmt(Math.abs(totV))} ${totV>=0?'ahead of':'behind'} budget (${pct(opB?totV/opB*100:0)})</strong>, at a ${margin.toFixed(1)}% margin versus ${marginB.toFixed(1)}% planned.</p>`;
+  if(adverse.length){
+    const names=adverse.slice(0,3).map(s=>`${s.site} (${fmt(s.v)}, ${pct(s.vp)})`).join(', ');
+    c+=`<p>The adverse movement is concentrated in <strong>${adverse.length} site${adverse.length>1?'s':''}</strong>: ${names}. `+
+       `${adverse[0].site} is the single largest drag and should carry a named recovery action into the review.</p>`;
+  }
+  if(fav.length){
+    const names=fav.slice(0,2).map(s=>`${s.site} (${fmt(s.v)})`).join(' and ');
+    c+=`<p>Partly offset by favourable performance at ${names}.</p>`;
+  }
+  const excluded=rows.filter(hardError).map(r=> r.rB==null ? `${r.site} (no budget baseline)` : `${r.site} (COGS exceeds revenue — suspected sign error)`);
+  if(excluded.length) c+=`<p><em>Quarantined from this P&amp;L pending correction: ${excluded.join('; ')} — see data-quality checks.</em></p>`;
+  if(!drivers.length) c+=`<p>No individual site breaches the £${thrK}k / ${thrPct.toFixed(1)}% materiality gate — performance is broadly on plan. Lower the threshold to surface smaller movements.</p>`;
+  document.getElementById('commentary').innerHTML=c;
+
+  /* ---- Synergy tracker ---- */
+  const tgt=INITIATIVES.reduce((s,i)=>s+i.target,0), rlz=INITIATIVES.reduce((s,i)=>s+i.realised,0);
+  let sy=`<thead><tr><th>Initiative</th><th>Owner</th><th>Run-rate target</th><th>Realised</th><th>% delivered</th><th>Status</th></tr></thead><tbody>`;
+  INITIATIVES.forEach(i=>{
+    const p=i.realised/i.target*100;
+    const status=p>=80?'<span class="pill good">On track</span>':p>=40?'<span class="pill warn">Behind</span>':'<span class="pill bad">At risk</span>';
+    sy+=`<tr><td>${i.name}</td><td>${i.owner}</td><td>${fmt(i.target)}</td><td>${fmt(i.realised)}</td><td>${p.toFixed(0)}%</td><td>${status}</td></tr>`;
+  });
+  sy+=`<tr class="total"><td>Total synergy programme</td><td></td><td>${fmt(tgt)}</td><td>${fmt(rlz)}</td><td>${(rlz/tgt*100).toFixed(0)}%</td><td>${(rlz/tgt*100)>=60?'<span class="pill good">On track</span>':'<span class="pill warn">Behind</span>'}</td></tr></tbody>`;
+  document.getElementById('synTable').innerHTML=sy;
+
+  /* ---- Validation ---- */
+  const issues=validate(rows);
+  const vl=document.getElementById('validationList');
+  if(!issues.length){ vl.innerHTML='<li><span class="flag-ic warn">✓</span><div>No data-quality issues in scope for this period.</div></li>'; }
+  else vl.innerHTML=issues.map(i=>`<li><span class="flag-ic ${i.sev}">${i.sev==='bad'?'!':'?'}</span><div>${i.msg}</div></li>`).join('');
+
+  /* ---- Chart ---- */
+  const ctx=document.getElementById('siteChart');
+  const labels=siteData.map(s=>s.site);
+  const dataA=siteData.map(s=>s.op), dataB=siteData.map(s=>s.opB);
+  if(chart) chart.destroy();
+  chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+      {label:'Actual',data:dataA,backgroundColor:'#1f6f6b',borderRadius:4},
+      {label:'Budget',data:dataB,backgroundColor:'#c3d0e6',borderRadius:4}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{family:'Inter'},boxWidth:12}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}},
+      scales:{y:{ticks:{callback:v=>'£'+v+'k',font:{family:'Inter'}},grid:{color:'#eef2f8'}},
+        x:{grid:{display:false},ticks:{font:{family:'Inter'}}}}}});
+}
+['entity','period','thr'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+render();
+</script>
+</body>
+</html>
